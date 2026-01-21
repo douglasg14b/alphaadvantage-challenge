@@ -1,6 +1,10 @@
 ## Alpha Advantage Challenge
 
-Built with react and mantine
+Built with react and mantine.
+
+- `pnpm dev` to start the dev server
+- https://douglasg14b.github.io/alphaadvantage-challenge/ to see it live
+    - Note: Browser routing is janky here, reloding in a child route will 404
 
 
 ## Video
