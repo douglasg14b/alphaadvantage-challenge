@@ -6,7 +6,8 @@ Built with react and mantine.
 - https://douglasg14b.github.io/alphaadvantage-challenge/ to see it live
     - Note: Browser routing is janky here, reloding in a child route will 404
 - Due to the 25 requests/day limit, this cahes heavily, and has fallback static cache for some data baked in.
-
+    - Details for `NVDA`, `SGN` and `ASST` exist
+    - TO reset APi limits, change your IP and refresh, it will load from cache first
 ## Video
 
 https://github.com/user-attachments/assets/931ff8f6-9176-4803-8768-9891ed378823
