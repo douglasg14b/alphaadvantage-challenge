@@ -1,0 +1,270 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true,
+        "defaultBranch": "main"
+    },
+    "files": {
+        "includes": ["**", "!**/dist", "!**/node_modules", "!**/.env*", "!**/pnpm-lock.yaml"],
+        "ignoreUnknown": true
+    },
+    "assist": { "actions": { "source": { "organizeImports": "on" } } },
+    "formatter": {
+        "enabled": true,
+        "formatWithErrors": false,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineEnding": "lf",
+        "lineWidth": 120,
+        "attributePosition": "auto",
+        "bracketSameLine": false,
+        "bracketSpacing": true,
+        "expand": "auto",
+        "useEditorconfig": true
+    },
+    "linter": {
+        "enabled": true,
+        "domains": {
+            "project": "recommended",
+            "react": "recommended",
+            "test": "recommended"
+        },
+        "rules": {
+            "recommended": true,
+            "nursery": {
+                "noMisusedPromises": "error",
+                "noFloatingPromises": "error",
+                "useExhaustiveSwitchCases": "error"
+            },
+            "style": {
+                "useNodejsImportProtocol": "off",
+                "useImportType": {
+                    "level": "warn",
+                    "options": {
+                        "style": "separatedType"
+                    }
+                },
+                "noDefaultExport": "warn",
+                "noDoneCallback": "warn",
+                "useCollapsedElseIf": "warn",
+                "useCollapsedIf": "warn",
+                "useThrowOnlyError": "error",
+                "useNamingConvention": {
+                    "level": "warn",
+                    "options": {
+                        "strictCase": true,
+                        "conventions": [
+                            // ─────────────────────────────────────────────
+                            // Ignore specific exceptions: __filename / __dirname
+                            // (ESLint: selector: variable, format: null, filter: /^(__filename|__dirname)$/)
+                            // ─────────────────────────────────────────────
+                            {
+                                "selector": {
+                                    "kind": "variable"
+                                },
+                                "match": "__filename|__dirname|(.*)"
+                            },
+
+                            // ─────────────────────────────────────────────
+                            // Ignore “discards”: names starting with _
+                            // (ESLint: selector: parameter | variableLike | memberLike, format: null, filter: /^_/)
+                            //
+                            // In Biome, a convention with only `match` and NO capture groups
+                            // acts like your `format: null` – it matches and then stops,
+                            // so later conventions (and defaults) don’t run. :contentReference[oaicite:0]{index=0}
+                            // ─────────────────────────────────────────────
+                            {
+                                "selector": { "kind": "functionParameter" },
+                                "match": "_.*|(.*)"
+                            },
+                            {
+                                "selector": { "kind": "variable" },
+                                "match": "_.*|(.*)"
+                            },
+                            {
+                                "selector": { "kind": "objectLiteralMember" },
+                                "match": "_.*|(.*)"
+                            },
+                            {
+                                "selector": { "kind": "typeMember" },
+                                "match": "_.*|(.*)"
+                            },
+
+                            // ─────────────────────────────────────────────
+                            // Type parameters: PascalCase with leading T
+                            // (ESLint: selector: typeParameter, format: PascalCase, prefix: ["T"])
+                            // ─────────────────────────────────────────────
+                            {
+                                "selector": { "kind": "typeParameter" },
+                                "match": "T(.+)", // captures the part after T
+                                "formats": ["PascalCase"] // applies to the capture :contentReference[oaicite:1]{index=1}
+                            },
+
+                            // ─────────────────────────────────────────────
+                            // All type-like declarations: StrictPascalCase
+                            // (classes, interfaces, type aliases, enums)
+                            // (ESLint: selector: typeLike, format: StrictPascalCase)
+                            // ─────────────────────────────────────────────
+                            {
+                                "selector": { "kind": "typeLike" },
+                                "formats": ["PascalCase"]
+                            },
+
+                            // ─────────────────────────────────────────────
+                            // Function names: strictCamelCase
+                            // (ESLint: selector: function, format: strictCamelCase)
+                            // ─────────────────────────────────────────────
+                            {
+                                "selector": { "kind": "function" },
+                                "formats": ["camelCase", "PascalCase"]
+                            },
+
+                            // ─────────────────────────────────────────────
+                            // Private class members:
+                            //   - optional leading "_"
+                            //   - body in strict camelCase
+                            // (ESLint: selector: memberLike + private, format: strictCamelCase,
+                            //  leadingUnderscore: "allow")
+                            // ─────────────────────────────────────────────
+                            {
+                                "selector": {
+                                    "kind": "classMember",
+                                    "modifiers": ["private"]
+                                },
+                                "match": "_?(.+)", // strip optional leading _
+                                "formats": ["camelCase"] // enforce camelCase on the body
+                            },
+
+                            // ─────────────────────────────────────────────
+                            // Object literal properties & methods:
+                            // allow UPPER_CASE, strictCamelCase, StrictPascalCase, snake_case
+                            // (ESLint: selector: objectLiteralProperty | objectLiteralMethod | typeProperty,
+                            //  format: [UPPER_CASE, strictCamelCase, StrictPascalCase, snake_case])
+                            // ─────────────────────────────────────────────
+                            {
+                                "selector": { "kind": "objectLiteralMember" },
+                                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE", "snake_case"]
+                            },
+
+                            // ─────────────────────────────────────────────
+                            // Type properties: same relaxed set as above
+                            // (ESLint: selector: typeProperty, same formats)
+                            // ─────────────────────────────────────────────
+                            {
+                                "selector": { "kind": "typeProperty" },
+                                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE", "snake_case"]
+                            },
+
+                            // ─────────────────────────────────────────────
+                            // Global const variables:
+                            //   - allow CONSTANT_CASE, strictCamelCase, StrictPascalCase
+                            // (ESLint:
+                            //   - selector: variable + const + global => [UPPER_CASE, strictCamelCase, StrictPascalCase]
+                            //   - selector: variable + const + global + exported + type in {string,number,boolean} => [UPPER_CASE]
+                            //   Biome has no export/type filters, so we approximate the first one only. :contentReference[oaicite:2]{index=2}
+                            // ─────────────────────────────────────────────
+                            {
+                                "selector": {
+                                    "kind": "const",
+                                    "scope": "global"
+                                },
+                                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE"]
+                            },
+
+                            // ─────────────────────────────────────────────
+                            // Function parameters: strictCamelCase
+                            // (ESLint: selector: parameter, format: strictCamelCase)
+                            // ─────────────────────────────────────────────
+                            {
+                                "selector": { "kind": "functionParameter" },
+                                "formats": ["camelCase"]
+                            }
+                        ]
+                    }
+                }
+            },
+            "performance": {
+                "noNamespaceImport": "warn",
+                "noAccumulatingSpread": "off"
+            },
+            "correctness": {
+                "noUnusedVariables": "error"
+            },
+            "suspicious": {
+                "noDoubleEquals": "error",
+                "noEmptyInterface": "off",
+                "noGlobalIsFinite": "off",
+                "noGlobalIsNan": "off",
+                "useIterableCallbackReturn": "off",
+                "noExplicitAny": "error",
+                "noEmptyBlockStatements": "warn",
+                "noEvolvingTypes": "error",
+                "noExportsInTest": "error",
+                "noUnassignedVariables": "warn",
+                "noVar": "error"
+            },
+            "complexity": {
+                "useArrowFunction": "off",
+                "noCommaOperator": "error"
+            }
+        },
+        "includes": [
+            "**",
+            "!**/vitest.config.ts",
+            "!**/vitest.config.integration.ts",
+            "!**/vitest.workspace.ts",
+            "!**/esbuild.mjs",
+            "!**/esbuild.js",
+            "!**/openapi-ts.config.ts"
+        ]
+    },
+    "javascript": {
+        "formatter": {
+            "jsxQuoteStyle": "double",
+            "quoteProperties": "asNeeded",
+            "trailingCommas": "all",
+            "semicolons": "always",
+            "arrowParentheses": "always",
+            "bracketSameLine": false,
+            "quoteStyle": "single",
+            "attributePosition": "auto",
+            "bracketSpacing": true
+        },
+        "parser": {
+            "unsafeParameterDecoratorsEnabled": true
+        }
+    },
+    "html": {
+        "formatter": {
+            "selfCloseVoidElements": "always"
+        }
+    },
+    "assist": {
+        "enabled": true,
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    },
+    "overrides": [
+        {
+            "includes": ["**/package.json"],
+            "formatter": {
+                "expand": "always"
+            }
+        },
+        {
+            "includes": ["vite.config.*"],
+            "linter": {
+                "rules": {
+                    "style": {
+                        "noDefaultExport": "off"
+                    }
+                }
+            }
+        }
+    ]
+}
