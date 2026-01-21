@@ -39,8 +39,7 @@ jobs:
       - name: Build
         env:
           # Set base path: '/' for username.github.io repos, '/repo-name/' for project pages
-          # VITE_BASE: ${{ endsWith(github.event.repository.name, '.github.io') && '/' || format('/{0}/', github.event.repository.name) }}
-          VITE_BASE: '/'
+          VITE_BASE: ${{ endsWith(github.event.repository.name, '.github.io') && '/' || format('/{0}/', github.event.repository.name) }}
         run: pnpm run build
 
       - name: Setup Pages
