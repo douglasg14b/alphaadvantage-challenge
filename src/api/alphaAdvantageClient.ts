@@ -48,9 +48,8 @@ export class AlphaAdvantageClient {
     async getMostActiveStocks(): Promise<TopGainersLosersItem[]> {
         const topGainersLosers = await this.getTopGainersLosers();
 
-        console.log(topGainersLosers);
-
-        return topGainersLosers.most_actively_traded;
+        // Take first 15, this saves on API calls downstream
+        return topGainersLosers.most_actively_traded.slice(0, 15);
     }
 
     async getTimeSeriesDaily(
