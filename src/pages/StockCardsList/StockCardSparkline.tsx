@@ -1,7 +1,7 @@
 import { Sparkline } from '@mantine/charts';
 import { Alert, Center, Loader, useMantineTheme } from '@mantine/core';
 import { useMemo } from 'react';
-import { useTimeSeriesDaily, useTimeSeriesDailyFake } from '../../hooks';
+import { useTimeSeriesDaily } from '../../hooks';
 
 interface StockCardSparklineProps {
     ticker: string;
@@ -11,7 +11,6 @@ interface StockCardSparklineProps {
 export function StockCardSparkline({ ticker, isPositive }: StockCardSparklineProps) {
     const theme = useMantineTheme();
     const { data: timeSeriesDaily, isLoading, isError, error } = useTimeSeriesDaily(ticker);
-    const { data: timeSeriesDailyFake, isLoading: isLoadingFake } = useTimeSeriesDailyFake(ticker);
 
     const sparklineData = useMemo(() => {
         const data = Object.entries(timeSeriesDaily ?? {});
@@ -25,7 +24,7 @@ export function StockCardSparkline({ ticker, isPositive }: StockCardSparklinePro
 
     const sparklineColor = isPositive ? theme.colors.teal[6] : theme.colors.red[6];
 
-    if (isLoading || isLoadingFake) {
+    if (isLoading) {
         return (
             <Center>
                 <Loader size="sm" />
@@ -33,7 +32,7 @@ export function StockCardSparkline({ ticker, isPositive }: StockCardSparklinePro
         );
     }
 
-    if (isError && !timeSeriesDailyFake) {
+    if (isError) {
         return (
             <Alert color="red" title="Error loading sparkline">
                 {error instanceof Error ? error.message : 'An unexpected error occurred'}

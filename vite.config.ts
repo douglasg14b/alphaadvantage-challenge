@@ -5,6 +5,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
     plugins: [react()],
     base: process.env.VITE_BASE || '/',
+    server: {
+        port: 3000,
+    },
     build: {
         rollupOptions: {
             output: {

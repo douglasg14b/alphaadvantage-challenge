@@ -1,5 +1,6 @@
 import Queue from 'p-queue';
 import { localStorageCache } from './localStorageCache';
+import { isRateLimitResponse } from './models';
 
 interface CacheEntry<TData> {
     data: TData;
@@ -29,17 +30,6 @@ class ApiCache {
         });
     }
 
-    private getCacheKey(url: string, params?: Record<string, string>): string {
-        const sortedParams = params
-            ? Object.entries(params)
-                  .filter(([k]) => k !== 'apikey') // Exclude API key from cache key
-                  .sort(([a], [b]) => a.localeCompare(b))
-                  .map(([k, v]) => `${k}=${v}`)
-                  .join('&')
-            : '';
-        return `${url}?${sortedParams}`;
-    }
-
     private isValid<TData>(entry: CacheEntry<TData> | undefined, ttl: number): entry is CacheEntry<TData> {
         if (!entry) return false;
         return Date.now() - entry.timestamp < ttl;
@@ -50,7 +40,7 @@ class ApiCache {
         fetcher: (url: string, params?: Record<string, string>) => Promise<TData>,
         params?: Record<string, string>,
     ): Promise<TData> {
-        const cacheKey = this.getCacheKey(url, params);
+        const cacheKey = generateCacheKey(url, params);
 
         // Check localStorage cache
         const cached = localStorageCache.get<TData>(cacheKey) ?? undefined;
@@ -85,6 +75,11 @@ class ApiCache {
                 throw new Error('Data is empty');
             }
 
+            // Do not cache rate limit response
+            if (isRateLimitResponse(data)) {
+                throw new Error('Rate limit reached');
+            }
+
             // Store in localStorage
             localStorageCache.set(cacheKey, entry);
 
@@ -93,7 +88,7 @@ class ApiCache {
     }
 
     invalidate(url: string, params?: Record<string, string>): void {
-        const cacheKey = this.getCacheKey(url, params);
+        const cacheKey = generateCacheKey(url, params);
         localStorageCache.remove(cacheKey);
     }
 
@@ -108,6 +103,17 @@ class ApiCache {
     get cacheSize(): number {
         return localStorageCache.getSize();
     }
+}
+
+export function generateCacheKey(url: string, params?: Record<string, string>): string {
+    const sortedParams = params
+        ? Object.entries(params)
+              .filter(([k]) => k !== 'apikey') // Exclude API key from cache key
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([k, v]) => `${k}=${v}`)
+              .join('&')
+        : '';
+    return `${url}?${sortedParams}`;
 }
 
 // Export a singleton instance

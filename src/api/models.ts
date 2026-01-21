@@ -1,6 +1,10 @@
-export interface RateLimitResponse {
-    Information: `We have detected your API key as ${string} and our standard API rate limit is 25 requests per day`;
-}
+export type RateLimitResponse =
+    | {
+          Information: `We have detected your API key as ${string} and our standard API rate limit is 25 requests per day`;
+      }
+    | {
+          Note: `We have detected your API key as ${string} and our standard API rate limit is 25 requests per day`;
+      };
 
 export interface BaseResponse {
     metadata: string;
@@ -111,11 +115,21 @@ export interface CompanyOverview {
 }
 
 export function isRateLimitResponse(response: unknown): response is RateLimitResponse {
-    return (
-        typeof response === 'object' &&
-        response !== null &&
+    if (typeof response !== 'object' || response === null) {
+        return false;
+    }
+
+    if ('Note' in response && typeof response.Note === 'string' && response.Note.includes('25 requests per day')) {
+        return true;
+    }
+
+    if (
         'Information' in response &&
         typeof response.Information === 'string' &&
         response.Information.includes('25 requests per day')
-    );
+    ) {
+        return true;
+    }
+
+    return false;
 }
