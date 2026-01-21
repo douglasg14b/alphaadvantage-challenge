@@ -11,7 +11,7 @@ function App() {
     return (
         <>
             <ApiKeyModal opened={!hasKey} onSubmit={saveApiKey} />
-            <BrowserRouter>
+            <BrowserRouter basename={import.meta.env.BASE_URL}>
                 <AppShell header={{ height: 35 }} footer={{ height: 50 }} padding="md">
                     <AppShell.Header>
                         <Center h="100%">
