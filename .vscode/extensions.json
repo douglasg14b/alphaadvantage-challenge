@@ -1,6 +1,3 @@
 {
-    "recommendations": [
-        "biomejs.biome",
-        "pkief.material-icon-theme"
-    ]
+    "recommendations": ["biomejs.biome", "pkief.material-icon-theme"]
 }

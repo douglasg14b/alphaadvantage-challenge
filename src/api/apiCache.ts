@@ -1,21 +1,23 @@
 import Queue from 'p-queue';
+import { localStorageCache } from './localStorageCache';
 
 interface CacheEntry<TData> {
     data: TData;
     timestamp: number;
 }
 
-interface CacheOptions {
-    ttl?: number;
-}
-
-const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
+// Crazy TTL because.... this is just a test, and the 25r/day is annoying
+const DEFAULT_TTL = 12 * 60 * 60 * 1000; // 12 hours
 
 /**
  * A simple response cache for API Requests
+ * We're doing this because the API has very low rate limits, and 1-per-second restrictions
+ * This is actually leftover from when I was using the real API for our sparklines before I knew of the 25/d limit
+ * It's still handy to have regardless with Strict mode anyways, so keeping it
+ *
+ * Uses localStorage for persistent caching across browser sessions
  */
 class ApiCache {
-    private cache = new Map<string, CacheEntry<unknown>>();
     private queue: Queue;
 
     constructor() {
@@ -30,6 +32,7 @@ class ApiCache {
     private getCacheKey(url: string, params?: Record<string, string>): string {
         const sortedParams = params
             ? Object.entries(params)
+                  .filter(([k]) => k !== 'apikey') // Exclude API key from cache key
                   .sort(([a], [b]) => a.localeCompare(b))
                   .map(([k, v]) => `${k}=${v}`)
                   .join('&')
@@ -42,37 +45,48 @@ class ApiCache {
         return Date.now() - entry.timestamp < ttl;
     }
 
-    async fetch<TData>(url: string, params?: Record<string, string>, options: CacheOptions = {}): Promise<TData> {
-        const { ttl = DEFAULT_TTL } = options;
+    async fetch<TData>(
+        url: string,
+        fetcher: (url: string, params?: Record<string, string>) => Promise<TData>,
+        params?: Record<string, string>,
+    ): Promise<TData> {
         const cacheKey = this.getCacheKey(url, params);
 
-        // Check cache first
-        const cached = this.cache.get(cacheKey) as CacheEntry<TData> | undefined;
-        if (this.isValid(cached, ttl)) {
-            console.log(`[ApiCache] Cache hit for: ${cacheKey}`);
+        // Check localStorage cache
+        const cached = localStorageCache.get<TData>(cacheKey) ?? undefined;
+        if (this.isValid(cached, DEFAULT_TTL)) {
             return cached.data;
         }
 
         // Queue the request to respect rate limits
         return this.queue.add(async () => {
             // Double-check cache (another request might have populated it while waiting)
-            const rechecked = this.cache.get(cacheKey) as CacheEntry<TData> | undefined;
-            if (this.isValid(rechecked, ttl)) {
+            const rechecked = localStorageCache.get<TData>(cacheKey) ?? undefined;
+            if (this.isValid(rechecked, DEFAULT_TTL)) {
                 return rechecked.data;
             }
 
-            const fullUrl = new URL(url);
-            if (params) {
-                fullUrl.search = new URLSearchParams(params).toString();
-            }
+            // Call fetcher callback
+            const data = await fetcher(url, params);
 
-            const response = await fetch(fullUrl.toString());
-            const data = (await response.json()) as TData;
-
-            this.cache.set(cacheKey, {
+            const entry: CacheEntry<TData> = {
                 data,
                 timestamp: Date.now(),
-            });
+            };
+
+            // Do not cache or use empty objects, strings, or arrays
+            if (
+                data === null ||
+                data === undefined ||
+                data === '' ||
+                (Array.isArray(data) && data.length === 0) ||
+                Object.keys(data).length === 0
+            ) {
+                throw new Error('Data is empty');
+            }
+
+            // Store in localStorage
+            localStorageCache.set(cacheKey, entry);
 
             return data;
         }) as Promise<TData>;
@@ -80,11 +94,11 @@ class ApiCache {
 
     invalidate(url: string, params?: Record<string, string>): void {
         const cacheKey = this.getCacheKey(url, params);
-        this.cache.delete(cacheKey);
+        localStorageCache.remove(cacheKey);
     }
 
     clearAll(): void {
-        this.cache.clear();
+        localStorageCache.clear();
     }
 
     get pendingRequests(): number {
@@ -92,7 +106,7 @@ class ApiCache {
     }
 
     get cacheSize(): number {
-        return this.cache.size;
+        return localStorageCache.getSize();
     }
 }
 

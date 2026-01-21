@@ -1,24 +1,39 @@
-import { AppShell, Center, Text, useMantineTheme } from '@mantine/core';
-import { Footer } from './components';
+import { AppShell, Center, Text } from '@mantine/core';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { ApiKeyModal, Footer } from './components';
+import { useApiKey } from './hooks';
 import { StockCardsList } from './pages/StockCardsList';
+import { StockDetails } from './pages/StockDetails';
 
 function App() {
+    const { hasKey, saveApiKey } = useApiKey();
+
     return (
-        <AppShell padding="md">
-            <AppShell.Header mb="md">
-                <Center>
-                    <Text fw={600} size="lg">
-                        Stock Ticker Dashboard
-                    </Text>
-                </Center>
-            </AppShell.Header>
-            <AppShell.Main h="100%">
-                <StockCardsList />
-            </AppShell.Main>
-            <AppShell.Footer>
-                <Footer />
-            </AppShell.Footer>
-        </AppShell>
+        <>
+            <ApiKeyModal opened={!hasKey} onSubmit={saveApiKey} />
+            <BrowserRouter>
+                <AppShell header={{ height: 35 }} footer={{ height: 50 }} padding="md">
+                    <AppShell.Header>
+                        <Center h="100%">
+                            <Text fw={600} size="lg">
+                                Stock Ticker Dashboard
+                            </Text>
+                        </Center>
+                    </AppShell.Header>
+                    <AppShell.Main>
+                        {hasKey && (
+                            <Routes>
+                                <Route path="/" element={<StockCardsList />} />
+                                <Route path="/ticker/:ticker" element={<StockDetails />} />
+                            </Routes>
+                        )}
+                    </AppShell.Main>
+                    <AppShell.Footer>
+                        <Footer />
+                    </AppShell.Footer>
+                </AppShell>
+            </BrowserRouter>
+        </>
     );
 }
 

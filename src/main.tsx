@@ -5,6 +5,7 @@ import ReactDom from 'react-dom/client';
 import App from './App.tsx';
 import { theme } from './mantineTheme.ts';
 import '@mantine/core/styles.css';
+import '@mantine/charts/styles.css';
 
 const queryClient = new QueryClient({
     defaultOptions: {

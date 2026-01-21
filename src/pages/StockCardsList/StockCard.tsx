@@ -1,44 +1,52 @@
-import { Sparkline } from '@mantine/charts';
-import { Card, Group, Text } from '@mantine/core';
-import { useMemo } from 'react';
+import { Card, Group, Stack, Text } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
+import { ChangeIndicator } from '../../components';
+import { StockCardSparkline } from './StockCardSparkline';
 
-function generateFauxData(points = 20): number[] {
-    let value = 50 + Math.random() * 50;
-    const data: number[] = [];
-
-    for (let i = 0; i < points; i++) {
-        value += (Math.random() - 0.5) * 10;
-        value = Math.max(20, Math.min(100, value));
-        data.push(value);
-    }
-
-    return data;
-}
-
-type StockCardParams = {
+type StockCardProps = {
     ticker: string;
     price: string;
     changeAmount: string;
     changePercentage: string;
 };
 
-export function StockCard({ ticker, price, changeAmount, changePercentage }: StockCardParams) {
-    const sparklineData = useMemo(() => generateFauxData(), []);
+export function StockCard({ ticker, price, changeAmount, changePercentage }: StockCardProps) {
+    const navigate = useNavigate();
+
+    const handleClick = () => {
+        navigate(`/ticker/${ticker}`);
+    };
 
     return (
-        <Card padding="lg">
-            <Card.Section>
-                <Group justify="space-between" p="md">
-                    <Text fw={600}>{ticker}</Text>
-                    <Text size="sm" c="dimmed">
-                        ${price}
+        <Card
+            padding="lg"
+            withBorder
+            onClick={handleClick}
+            style={{ cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '';
+            }}
+        >
+            <Stack gap="sm">
+                <Group justify="space-between" align="flex-start">
+                    <Text fw={700} size="lg">
+                        {ticker}
                     </Text>
+                    <Stack gap={2} align="flex-end">
+                        <Text fw={600} size="xl">
+                            ${price}
+                        </Text>
+                        <ChangeIndicator changeAmount={changeAmount} changePercentage={changePercentage} size="sm" />
+                    </Stack>
                 </Group>
-            </Card.Section>
 
-            <Card.Section p="md" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Sparkline w="100%" h={50} data={sparklineData} curveType="linear" fillOpacity={0.2} strokeWidth={2} />
-            </Card.Section>
+                <StockCardSparkline ticker={ticker} isPositive={Number.parseFloat(changeAmount) >= 0} />
+            </Stack>
         </Card>
     );
 }
