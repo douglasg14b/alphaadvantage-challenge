@@ -2,7 +2,7 @@
 
 Built with react and mantine.
 
-- `pnpm dev` to start the dev server
+- `pnpm dev` to start the dev server and run it locally.
 - https://douglasg14b.github.io/alphaadvantage-challenge/ to see it live
     - Note: Browser routing is janky here, reloding in a child route will 404
 - Due to the 25 requests/day limit, this cahes heavily, and has fallback static cache for some data baked in.
