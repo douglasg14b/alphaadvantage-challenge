@@ -12,7 +12,7 @@ function App() {
                     </Text>
                 </Center>
             </AppShell.Header>
-            <AppShell.Main>
+            <AppShell.Main h="100%">
                 <StockCardsList />
             </AppShell.Main>
             <AppShell.Footer>

@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import type { AnchorProps } from '@mantine/core';
-import { Anchor, Container, createPolymorphicComponent, Group, Stack, Text } from '@mantine/core';
+import { Anchor, Container, createPolymorphicComponent, Grid, Group, Stack, Text } from '@mantine/core';
 import { IconBrandGithub } from '@tabler/icons-react';
 
 const FooterSection = styled.footer`
@@ -18,24 +18,22 @@ export function Footer() {
     const currentYear = new Date().getFullYear();
 
     return (
-        <FooterSection style={{ padding: 60 }}>
-            <Container size="xl">
-                <Stack gap="xl" align="center" pos="relative">
-                    <Group gap="xl">
-                        <StyledAnchor
-                            href="'https://github.com/douglasg14b'"
-                            c="dimmed"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <IconBrandGithub size={24} />
-                        </StyledAnchor>
-                    </Group>
+        <FooterSection style={{ padding: '20px' }}>
+            <Container size="lg" px="md">
+                <Grid gutter="lg" align="center" pos="relative">
+                    <StyledAnchor
+                        href="'https://github.com/douglasg14b'"
+                        c="dimmed"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <IconBrandGithub size={24} />
+                    </StyledAnchor>
 
                     <Text c="dimmed" size="sm" ta="center">
                         © {currentYear} Douglas Gaskell
                     </Text>
-                </Stack>
+                </Grid>
             </Container>
         </FooterSection>
     );
